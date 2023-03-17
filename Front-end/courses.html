@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+        integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <style>
+        #logout {
+            float: right;
+        }
+    </style>
+
+
+</head>
+
+<body>
+    <button type="button" onclick="LogOut()" style="float: right;" id="logout">Logout</button>
+
+    <h1 style="text-align: center;">Courses</h1><br>
+
+    <div class="container">
+
+        <div class="row">
+            <main id="items" class="col-sm-8 row"></main>
+            <div></div>
+            <p>
+            <aside class="col-sm-4" id="ww">
+                <p></p>
+                <h2>Cart</h2>
+
+                <ul id="cart" class="list-group"></ul>
+                <hr>
+
+                <p class="text-right">Total: <span id="total"></span>&dollar;</p>
+                </p>
+
+            </aside>
+        </div>
+    </div>
+    <script>
+        const showCart = localStorage.getItem('LoggedIn')
+        // if(showCart!="true"){
+        //     document.getElementById("ww").style.visibility="hidden";
+
+        // }
+        let x = document.getElementById("ww");
+        // document.getElementById("element").style.display = "none";
+
+        function LogOut() {
+            localStorage.removeItem('username');
+            localStorage.removeItem('password');
+            localStorage.setItem('LoggedIn', 'false')
+            window.location.href = "login.html";
+        }
+        // window.onload = function () {
+        //     console.log(showCart)
+        // }
+        // let xhr = new XMLHttpRequest();
+        // xhr.open("GET", "http://localhost:1500/courses")
+        // xhr.send();
+        // xhr.onreadystatechange = () => {
+        //     if (xhr.readyState === 4 && xhr.status === 200) {
+        //         //document.write(xhr.response);
+        //     }
+        //     console.log(xhr.response)
+
+        var baseDatos;
+        var $items = document.querySelector('#items');
+        var cart = [];
+        var total = 0;
+        var $cart = document.querySelector('#cart');
+        var $total = document.querySelector('#total');
+
+        async function renderItems() {
+            var request = new XMLHttpRequest();
+
+            request.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    baseDatos = JSON.parse(this.responseText);
+                    for (var info of baseDatos) {
+                        //console.log(info)
+
+                        var mynode = document.createElement('div');
+                        mynode.classList.add('card', 'col-sm-4');
+
+                        var mynodeCardBody = document.createElement('div');
+                        mynodeCardBody.classList.add('card-body');
+
+                        var mynodeTitle = document.createElement('h5');
+                        mynodeTitle.classList.add('card-title');
+                        mynodeTitle.textContent = info['title'];
+
+                        var mynodeprice = document.createElement('p');
+                        mynodeprice.classList.add('card-text');
+                        mynodeprice.textContent =   info['subtitle'];
+
+                        var mynodebutton = document.createElement('button');
+                        mynodebutton.classList.add('btn', 'btn-primary');
+                        mynodebutton.textContent = '+';
+                        mynodebutton.setAttribute('marcador', info['id']);
+                     
+                        mynodebutton.addEventListener('click', anyadircart);
+
+                        mynodeCardBody.appendChild(mynodeTitle);
+                        mynodeCardBody.appendChild(mynodeprice);
+                        mynodeCardBody.appendChild(mynodebutton);
+                        mynode.appendChild(mynodeCardBody);
+                        $items.appendChild(mynode);
+                    }
+                    // console.log(this.responseText);
+                }
+            };
+
+            request.open('GET', 'http://localhost:1500/courses');
+            await request.send();
+
+            console.log(baseDatos)
+
+           
+
+        }
+
+        function anyadircart() {
+            
+            cart.push(this.getAttribute('marcador')) 
+            
+
+        
+            calcularTotal();
+            
+            renderizarcart();
+  
+             let xhr = new XMLHttpRequest();
+            let title,id,username,subtitle;
+           
+      
+         xhr.open("POST", "http://localhost:1500/cart")
+         xhr.setRequestHeader("Accept", "application/json");
+         xhr.setRequestHeader("Content-Type", "application/json");
+         // xhr.send();
+         var cart_a = new Array();
+         if ("courses" in localStorage) {
+            user_records=JSON.parse(localStorage.getItem("courses"))
+         }
+         else {
+            cart_a = []
+         }
+         let data={
+            "title": mynodeTitle,
+            "subtitle": mynodeprice,
+            }
+            console.log(JSON.stringify(data))
+            cart_a.push(data)
+         
+         xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+               //  document.write(xhr.response);
+            }
+         }
+         xhr.send(JSON.stringify(data));
+ 
+
+        }
+        
+
+
+        function renderizarcart() {
+
+            $cart.textContent = '';
+
+            cart.forEach(function (item, index) {
+
+                var miItem = baseDatos.filter(function (itembaseDatos) {
+                    return itembaseDatos['id'] == item;
+                });
+
+                var mynode = document.createElement('li');
+                mynode.classList.add('list-group-item', 'text-right');
+                mynode.textContent = `${miItem[0]['title']} - ${miItem[0]['subtitle']}`;
+
+                var mibutton = document.createElement('button');
+                mibutton.classList.add('btn', 'btn-danger', 'mx-5');
+                mibutton.textContent = 'X';
+                mibutton.setAttribute('position', index);
+                mibutton.addEventListener('click', borrarItemcart);
+
+
+
+                mynode.appendChild(mibutton);
+                $cart.appendChild(mynode);
+            })
+        }
+
+        function borrarItemcart() {
+            var position = this.getAttribute('position');
+            cart.splice(position, 1);
+            renderizarcart();
+            calcularTotal();
+           
+
+        }
+
+        function calcularTotal() {
+
+            total = 0;
+
+            for (var item of cart) {
+
+                var miItem = baseDatos.filter(function (itembaseDatos) {
+                    return itembaseDatos['id'] == item;
+                });
+                total = total + miItem[0]['price'];
+            }
+            var totalDosDecimales = total.toFixed(2);
+
+            $total.textContent = totalDosDecimales;
+        }
+
+        renderItems();
+
+
+        /*    xhr.open("POST","http://localhost:1500/courses")
+       
+       xhr.setRequestHeader("Content-Type", "application/json");
+       
+       xhr.onload = () => console.log(xhr.responseText);
+       
+       xhr.send(); */
+
+        /*  xhr.open("POST","http://localhost:1500/courses")
+         xhr.setRequestHeader("Accept", "application/json");
+         //xhr.setRequestHeader("Content-Type", "application/json");
+         //console.log(data1)
+         xhr.onreadystatechange = () => {
+               if (xhr.readyState === 4 && xhr.status === 200) {
+                   mynode.classList.add('card', 'col-sm-4');
+   
+               }
+            }
+          //  xhr.send(JSON.stringify(data1));
+      } */
+
+
+        // document.addEventListener("DOMContentLoaded", function () {
+        if (showCart === "true") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+        // });
+
+        if (showCart === "false") {
+            document.getElementById('logout').style.visibility = "hidden";
+        }
+
+    </script>
+</body>
+
+</html>
