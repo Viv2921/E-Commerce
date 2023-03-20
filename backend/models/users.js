@@ -5,7 +5,6 @@ const sch={
     username:{type:String, unique:true,required:true},
     email:String,
     password:String,
-    cart:[]
 }
 
  /* const monmodel=mongoose.model("usersses",sch)    */

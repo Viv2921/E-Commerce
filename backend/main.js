@@ -114,6 +114,7 @@ app.post('/users',async(req,res)=>{
   app.get('/users',async(req,res)=>{
     try{
       const posts=await sch.find();
+      console.log(JSON.parse(posts))
       res.status(200).send(posts);
     } catch(error){
       res.status(500).send(error);
@@ -158,24 +159,36 @@ app.post('/users',async(req,res)=>{
     }
 })
   //cart
-
-  app.get('/cart',async(req,res)=>{
-    try{
-      const posts=await cart.find();
-      res.status(200).send(posts);
-    } catch(error){
-      res.status(500).send(error);
-    }
-  })
-  app.post('/cart',async(req,res)=>{
-    const data=new courses({ 
-      title:req.body.title,
-      subtitle:req.body.subtitle
+ 
+  app.post('/cart/:id',async(req,res)=>{
+    //var s=req.params.id;
+    const data=new cart({ 
+      id:req.body.id,
+        title: req.body.title,
+        subtitle: req.body.subtitle
     }) 
     const val=await data.save(); 
     res.send(data);
     /* res.json(val);  */
   })
+
+ app.get('/cart/:id',async(req,res)=>{
+  var rr=await cart.find({'id':req.params.id});
+  res.status(200);
+  res.json(rr)
+ })
+
+ app.get('/users/:id',async(req,res)=>{
+  try{
+    const id=await sch.find();
+    res.status(200);
+    res.send(id);
+
+  }catch(error){
+    res.status(500).send(error);
+  }
+})
+
 
 
 

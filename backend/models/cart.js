@@ -2,8 +2,11 @@ const express=require('express')
 const mongoose=require('mongoose')
 
 const cart={
+    id:String,
     title:String,
-    subtitle:String
-}
+    subtitle:String,
+    }
+   
 
-module.exports=mongoose.model("cart",cart); 
+
+module.exports=mongoose.model("car",cart); 
